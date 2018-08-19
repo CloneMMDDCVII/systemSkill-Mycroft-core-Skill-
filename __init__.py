@@ -1,64 +1,55 @@
-# Copyright 2016 Mycroft AI, Inc.
-#
-# This file is part of Mycroft Core.
-#
-# Mycroft Core is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Mycroft Core is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Mycroft Core.  If not, see <http://www.gnu.org/licenses/>.
-#
-# This is a simple skill based on the HelloWorld Skill that shuts down the computer when asking for it. 
-# It does not require root.
-from os.path import dirname
+#~ Copyright (C) eward & BrokenClock
+#~ Modified by backasswards, 2018
 
-from adapt.intent import IntentBuilder
-from mycroft.skills.core import MycroftSkill
-from mycroft.util.log import getLogger
+#~ This program is free software: you can redistribute it and/or modify
+#~ it under the terms of the GNU General Public License as published by
+#~ the Free Software Foundation, either version 3 of the License, or
+#~ (at your option) any later version.
+
+#~ This program is distributed in the hope that it will be useful,
+#~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+#~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#~ GNU General Public License for more details.
+
+#~ You should have received a copy of the GNU General Public License
+#~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from mycroft import MycroftSkill, intent_file_handler
 import os
-import time
-__author__ = 'eward'
-__author__ = 'BrokenClock'
-
-LOGGER = getLogger(__name__)
 
 
-class systemSkill(MycroftSkill):
-
+class System(MycroftSkill):
     def __init__(self):
-        super(systemSkill, self).__init__(name="systemSkill")
+        MycroftSkill.__init__(self)
 
-    def initialize(self):
-        shutdown_intent = IntentBuilder("shutdownIntent").\
-            require("shutdownKeyword").build()
-        self.register_intent(shutdown_intent, self.handle_shutdown_intent)
+    # Get the user's confirmation before proceeding with the given task
+    def userValidation(self, action):
+        # Keyworks translated in the user's language
+        ASSERTION = self.translate_namedvalues('assertion')
 
-        restart_intent = IntentBuilder("restartIntent").\
-            require("restartKeyword").build()
-        self.register_intent(restart_intent,
-                             self.handle_restart_intent)
+        dialogData = {'action' : action}
+        validation = self.get_response('validation', dialogData)
 
+        if ASSERTION['yes'] in validation:
+            return True
 
-    def handle_shutdown_intent(self, message):
-        self.speak_dialog("shuttingDown")
-        time.sleep(30)
-        os.system("systemctl poweroff")
+    @intent_file_handler('reboot.intent')
+    def handle_reboot(self, message):
+        # 'action' words translated in the user's language
+        ACTIONS = self.translate_namedvalues('actions')
 
-    def handle_restart_intent(self, message):
-        self.speak_dialog("restart")
-        time.sleep(30)
-        os.system("systemctl reboot")
+        if self.userValidation(ACTIONS['reboot']):
+            os.system("systemctl reboot")
 
-    def stop(self):
-        pass
+    @intent_file_handler('powerOff.intent')
+    def handle_powerOff(self, message):
+        # 'action' words translated in the user's language
+        ACTIONS = self.translate_namedvalues('actions')
+
+        if self.userValidation(ACTIONS['poweroff']):
+            os.system("systemctl poweroff")
 
 
 def create_skill():
-    return systemSkill()
+    return System()
+
