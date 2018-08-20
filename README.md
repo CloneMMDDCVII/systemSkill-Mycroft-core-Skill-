@@ -1,4 +1,4 @@
-## System
+## System Skill
 A simple skill to shutdown/restart computer by voice.
 
 ## Description

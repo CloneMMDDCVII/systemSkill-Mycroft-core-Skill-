@@ -21,32 +21,30 @@ import os
 class System(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
+        
+    def getUserConfirmation(self, task):
+        assert task
+        
+        data = {'task' : task}
+        utter = self.ask_yesno('confirmation', data)
 
-    # Get the user's confirmation before proceeding with the given task
-    def userValidation(self, action):
-        # Keyworks translated in the user's language
-        ASSERTION = self.translate_namedvalues('assertion')
-
-        dialogData = {'action' : action}
-        validation = self.get_response('validation', dialogData)
-
-        if ASSERTION['yes'] in validation:
+        if self.is_match(utter, 'yes'):
             return True
 
     @intent_file_handler('reboot.intent')
     def handle_reboot(self, message):
-        # 'action' words translated in the user's language
-        ACTIONS = self.translate_namedvalues('actions')
-
-        if self.userValidation(ACTIONS['reboot']):
+        # task names translated in the user's language
+        tasks = self.translate_namedvalues('tasks')
+        
+        if self.getUserConfirmation(tasks['reboot']):
             os.system("systemctl reboot")
 
     @intent_file_handler('powerOff.intent')
     def handle_powerOff(self, message):
-        # 'action' words translated in the user's language
-        ACTIONS = self.translate_namedvalues('actions')
-
-        if self.userValidation(ACTIONS['poweroff']):
+        # task names translated in the user's language
+        tasks = self.translate_namedvalues('tasks')
+        
+        if self.getUserConfirmation(tasks['poweroff']):
             os.system("systemctl poweroff")
 
 
