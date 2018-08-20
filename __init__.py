@@ -15,16 +15,19 @@
 #~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from mycroft import MycroftSkill, intent_file_handler
-import os
+from mycroft.messagebus.message import Message
 
 
 class System(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
-        
+
+    def initialize(self):
+        self.tasks = self.translate_namedvalues('tasks')
+
     def getUserConfirmation(self, task):
         assert task
-        
+
         data = {'task' : task}
         utter = self.ask_yesno('confirmation', data)
 
@@ -33,19 +36,13 @@ class System(MycroftSkill):
 
     @intent_file_handler('reboot.intent')
     def handle_reboot(self, message):
-        # task names translated in the user's language
-        tasks = self.translate_namedvalues('tasks')
-        
-        if self.getUserConfirmation(tasks['reboot']):
-            os.system("systemctl reboot")
+        if self.getUserConfirmation(self.tasks['reboot']):
+            self.emitter.emit(Message('system.reboot'))
 
     @intent_file_handler('powerOff.intent')
     def handle_powerOff(self, message):
-        # task names translated in the user's language
-        tasks = self.translate_namedvalues('tasks')
-        
-        if self.getUserConfirmation(tasks['poweroff']):
-            os.system("systemctl poweroff")
+        if self.getUserConfirmation(self.tasks['poweroff']):
+            self.emitter.emit(Message('system.shutdown'))
 
 
 def create_skill():
