@@ -1,0 +1,5 @@
+{
+    "expected_dialog": "confirmation",
+    "intent_type": "powerOff.intent",
+    "utterance": "poweroff"
+}
